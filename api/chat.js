@@ -16,7 +16,6 @@ module.exports = async (req, res) => {
 
   if (req.method === "GET") {
     try {
-      // Online count
       if (req.query.type === "online") {
         const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
         const { count, error } = await supabase
@@ -27,7 +26,6 @@ module.exports = async (req, res) => {
         return res.status(200).json({ count: count || 0 });
       }
 
-      // Get messages
       const after = req.query.after ? parseInt(req.query.after) : 0;
       let query = supabase
         .from("messages")
@@ -46,7 +44,6 @@ module.exports = async (req, res) => {
 
   if (req.method === "POST") {
     try {
-      // Heartbeat
       if (req.query.type === "heartbeat") {
         const { user_id, username } = req.body;
         if (!user_id) return res.status(400).json({ error: "Missing user_id" });
@@ -60,7 +57,6 @@ module.exports = async (req, res) => {
         return res.status(200).json({ success: true });
       }
 
-      // Announcement
       if (req.query.type === "announce") {
         const { admin_id, message, duration } = req.body;
         if (String(admin_id) !== ADMIN_ID) {
@@ -70,8 +66,8 @@ module.exports = async (req, res) => {
           return res.status(400).json({ error: "Invalid message" });
         }
 
-        // duration 0 means no limit no expiry
-        const dur = (duration && duration > 0) ? duration : 0;
+        // Default 10 seconds if not provided or 0
+        const dur = (duration && duration > 0) ? duration : 10;
 
         const { data, error } = await supabase
           .from("messages")
@@ -89,7 +85,6 @@ module.exports = async (req, res) => {
         return res.status(200).json(data[0]);
       }
 
-      // Normal message
       const { username, display_name, user_id, message } = req.body;
       if (!username || !message || message.length > 200) {
         return res.status(400).json({ error: "Invalid" });
